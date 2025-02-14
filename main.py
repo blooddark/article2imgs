@@ -193,13 +193,7 @@ def generate_image_with_bg(sentences, config, output_path, bg_path):
     # 如果不足4句话，补足空字符串
     if len(sentences) < 4:
         sentences += [""] * (4 - len(sentences))
-    
-    # 如果一句话超过24个字，分割到下一句
-    for i, sentence in enumerate(sentences):
-        if len(sentence) > 24:
-            sentences[i] = sentence[:24]
-            sentences.insert(i+1, sentence[24:])
-    
+
     for i, sentence in enumerate(sentences[:4]):
         if not sentence:
             continue
@@ -308,10 +302,17 @@ def main():
             bg_images = bg_images[:args.bg_limit]
         
         # 将全文拆分为句子（支持中文标点和英文标点）
-        sentence_list = re.split(r'(?<=[。！？.?!\n])+(?![。！？.?!」])', text)
+        sentence_list = re.split(r'(?<=[。！？.?!;；”\n])+(?![。！？.?!」”])', text)
         sentence_list = [s.strip() for s in sentence_list if s.strip()]
         
         num_bg_pages = len(bg_images)
+        
+        # 如果一句话超过24个字，分割到下一句
+        for i, sentence in enumerate(sentence_list[:4]):
+            if len(sentence) > 24:
+                sentence_list[i] = sentence[:24]
+                sentence_list.insert(i+1, sentence[24:])
+
         # 每页显示4句话
         chunks = []
         for i in range(num_bg_pages):
@@ -320,9 +321,10 @@ def main():
             while len(chunk) < 4:
                 chunk.append("")
             chunks.append(chunk)
-        
+
         for i, (bg, sentences) in enumerate(zip(bg_images, chunks)):
             output_path = os.path.join(args.output_dir, f'page_bg_{i+1:03d}.jpg')
+            
             generate_image_with_bg(sentences, config, output_path, bg)
             print(f'Generated with background image: {output_path}')
         
