@@ -1,1 +1,0 @@
-./main.exe input.txt img --watermark_text 书雅舍友
